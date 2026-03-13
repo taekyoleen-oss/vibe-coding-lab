@@ -1,0 +1,69 @@
+/* TweakCN 컬러 토큰 — globals.css 동기화용 참조 파일 */
+
+/* ──────────────────────────────────────────────
+   라이트 모드
+────────────────────────────────────────────── */
+:root {
+  --background: oklch(0.9824 0.0013 286.3757);
+  --foreground: oklch(0.1709 0.0046 285.8861);
+
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.1709 0.0046 285.8861);
+
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.1709 0.0046 285.8861);
+
+  --primary: oklch(0.6487 0.1538 150.3071);           /* 녹색 계열 — 주 액션 버튼 */
+  --primary-foreground: oklch(1.0000 0 0);
+
+  --secondary: oklch(0.6746 0.1414 261.3380);         /* 보라-파랑 — 보조 버튼, 뱃지 */
+  --secondary-foreground: oklch(1.0000 0 0);
+
+  --muted: oklch(0.8828 0.0285 98.1033);              /* 비활성 텍스트 */
+  --muted-foreground: oklch(0.4461 0.0277 285.8861);
+
+  --accent: oklch(0.8269 0.1080 211.9627);            /* 청록 — 하이라이트, 호버 */
+  --accent-foreground: oklch(0.1709 0.0046 285.8861);
+
+  --destructive: oklch(0.5771 0.2152 27.3250);
+  --destructive-foreground: oklch(1.0000 0 0);
+
+  --border: oklch(0.8569 0.0077 286.3757);
+  --input: oklch(0.8569 0.0077 286.3757);
+  --ring: oklch(0.6487 0.1538 150.3071);
+
+  --radius: 0.625rem;
+}
+
+/* ──────────────────────────────────────────────
+   다크 모드 (.dark 클래스 — next-themes)
+────────────────────────────────────────────── */
+.dark {
+  --background: oklch(0.1709 0.0046 285.8861);
+  --foreground: oklch(0.9824 0.0013 286.3757);
+
+  --card: oklch(0.2276 0.0058 285.8861);
+  --card-foreground: oklch(0.9824 0.0013 286.3757);
+
+  --popover: oklch(0.2276 0.0058 285.8861);
+  --popover-foreground: oklch(0.9824 0.0013 286.3757);
+
+  --primary: oklch(0.7200 0.1538 150.3071);
+  --primary-foreground: oklch(0.1200 0.0300 150.0000);
+
+  --secondary: oklch(0.5500 0.1200 261.3380);
+  --secondary-foreground: oklch(1.0000 0 0);
+
+  --muted: oklch(0.3200 0.0100 285.8861);
+  --muted-foreground: oklch(0.6500 0.0150 285.8861);
+
+  --accent: oklch(0.5500 0.1000 211.9627);
+  --accent-foreground: oklch(0.9824 0.0013 286.3757);
+
+  --destructive: oklch(0.6500 0.2000 27.3250);
+  --destructive-foreground: oklch(1.0000 0 0);
+
+  --border: oklch(0.3200 0.0058 285.8861);
+  --input: oklch(0.3200 0.0058 285.8861);
+  --ring: oklch(0.7200 0.1538 150.3071);
+}
