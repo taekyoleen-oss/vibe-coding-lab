@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "highlight.js/styles/github-dark.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -8,7 +9,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -47,73 +49,102 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ──────────────────────────────────────────────
+   TweakCN 컬러 토큰 — 라이트 모드
+────────────────────────────────────────────── */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: oklch(0.9824 0.0013 286.3757);
+  --foreground: oklch(0.1709 0.0046 285.8861);
+
+  --card: oklch(1.0000 0 0);
+  --card-foreground: oklch(0.1709 0.0046 285.8861);
+
+  --popover: oklch(1.0000 0 0);
+  --popover-foreground: oklch(0.1709 0.0046 285.8861);
+
+  --primary: oklch(0.6487 0.1538 150.3071);
+  --primary-foreground: oklch(1.0000 0 0);
+
+  --secondary: oklch(0.6746 0.1414 261.3380);
+  --secondary-foreground: oklch(1.0000 0 0);
+
+  --muted: oklch(0.8828 0.0285 98.1033);
+  --muted-foreground: oklch(0.4461 0.0277 285.8861);
+
+  --accent: oklch(0.8269 0.1080 211.9627);
+  --accent-foreground: oklch(0.1709 0.0046 285.8861);
+
+  --destructive: oklch(0.5771 0.2152 27.3250);
+  --destructive-foreground: oklch(1.0000 0 0);
+
+  --border: oklch(0.8569 0.0077 286.3757);
+  --input: oklch(0.8569 0.0077 286.3757);
+  --ring: oklch(0.6487 0.1538 150.3071);
+
+  --radius: 0.625rem;
+
   --chart-1: oklch(0.809 0.105 251.813);
   --chart-2: oklch(0.623 0.214 259.815);
   --chart-3: oklch(0.546 0.245 262.881);
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  --sidebar: oklch(0.9700 0.0020 286.3757);
+  --sidebar-foreground: oklch(0.1709 0.0046 285.8861);
+  --sidebar-primary: oklch(0.6487 0.1538 150.3071);
+  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-accent: oklch(0.8828 0.0285 98.1033);
+  --sidebar-accent-foreground: oklch(0.1709 0.0046 285.8861);
+  --sidebar-border: oklch(0.8569 0.0077 286.3757);
+  --sidebar-ring: oklch(0.6487 0.1538 150.3071);
 }
 
+/* ──────────────────────────────────────────────
+   TweakCN 컬러 토큰 — 다크 모드
+────────────────────────────────────────────── */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --background: oklch(0.1709 0.0046 285.8861);
+  --foreground: oklch(0.9824 0.0013 286.3757);
+
+  --card: oklch(0.2276 0.0058 285.8861);
+  --card-foreground: oklch(0.9824 0.0013 286.3757);
+
+  --popover: oklch(0.2276 0.0058 285.8861);
+  --popover-foreground: oklch(0.9824 0.0013 286.3757);
+
+  --primary: oklch(0.7200 0.1538 150.3071);
+  --primary-foreground: oklch(0.1200 0.0300 150.0000);
+
+  --secondary: oklch(0.5500 0.1200 261.3380);
+  --secondary-foreground: oklch(1.0000 0 0);
+
+  --muted: oklch(0.3200 0.0100 285.8861);
+  --muted-foreground: oklch(0.6500 0.0150 285.8861);
+
+  --accent: oklch(0.5500 0.1000 211.9627);
+  --accent-foreground: oklch(0.9824 0.0013 286.3757);
+
+  --destructive: oklch(0.6500 0.2000 27.3250);
+  --destructive-foreground: oklch(1.0000 0 0);
+
+  --border: oklch(0.3200 0.0058 285.8861);
+  --input: oklch(0.3200 0.0058 285.8861);
+  --ring: oklch(0.7200 0.1538 150.3071);
+
   --chart-1: oklch(0.809 0.105 251.813);
   --chart-2: oklch(0.623 0.214 259.815);
   --chart-3: oklch(0.546 0.245 262.881);
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+
+  --sidebar: oklch(0.2276 0.0058 285.8861);
+  --sidebar-foreground: oklch(0.9824 0.0013 286.3757);
+  --sidebar-primary: oklch(0.7200 0.1538 150.3071);
+  --sidebar-primary-foreground: oklch(0.1200 0.0300 150.0000);
+  --sidebar-accent: oklch(0.3200 0.0100 285.8861);
+  --sidebar-accent-foreground: oklch(0.9824 0.0013 286.3757);
+  --sidebar-border: oklch(0.3200 0.0058 285.8861);
+  --sidebar-ring: oklch(0.7200 0.1538 150.3071);
 }
 
 @layer base {
@@ -122,8 +153,50 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans), sans-serif;
   }
   html {
     @apply font-sans;
   }
+}
+
+/* ──────────────────────────────────────────────
+   폰트 변수
+────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+}
+
+/* ──────────────────────────────────────────────
+   @tailwindcss/typography prose 커스터마이징
+────────────────────────────────────────────── */
+.prose h2 {
+  @apply text-xl font-semibold mt-6 mb-3;
+}
+.prose h3 {
+  @apply text-lg font-semibold mt-4 mb-2;
+}
+.prose ul {
+  @apply list-disc pl-5 space-y-1;
+}
+.prose ol {
+  @apply list-decimal pl-5 space-y-1;
+}
+.prose blockquote {
+  @apply border-l-4 border-primary/40 pl-4 italic text-muted-foreground;
+}
+.prose code {
+  font-family: 'JetBrains Mono', monospace;
+}
+.prose pre code {
+  font-family: 'JetBrains Mono', monospace;
+  @apply text-sm;
+}
+.prose a {
+  @apply text-primary underline underline-offset-4 hover:text-primary/80;
+}
+.prose img {
+  @apply rounded-md max-w-full;
 }
