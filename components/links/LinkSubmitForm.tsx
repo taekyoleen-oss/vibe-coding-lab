@@ -95,6 +95,7 @@ export function LinkSubmitForm() {
       }
 
       router.push('/links')
+      router.refresh()
     } catch (err) {
       alert(err instanceof Error ? err.message : '링크 추가에 실패했습니다.')
     } finally {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getLinks, createLink } from '@/lib/supabase/queries/links'
 import { generalLimit, checkRateLimit, getIp } from '@/lib/utils/rate-limit'
@@ -33,6 +34,7 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createSupabaseServerClient()
     const result = await createLink(supabase, body)
+    revalidatePath('/links')
     return NextResponse.json({ data: result }, { status: 201 })
   } catch (err) {
     console.error('[POST /api/links]', err)
