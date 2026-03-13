@@ -9,7 +9,7 @@ import type { ContentType } from '@/output/step2_types'
 interface EditOwnerGateProps {
   contentType: ContentType
   contentId: string
-  children: (isAuthenticated: boolean) => React.ReactNode
+  children: React.ReactNode
 }
 
 type GateState = 'idle' | 'sending' | 'sent' | 'authenticated' | 'error'
@@ -60,7 +60,7 @@ export function EditOwnerGate({ contentType, contentId, children }: EditOwnerGat
   }
 
   if (state === 'authenticated' || isAuthenticated) {
-    return <>{children(true)}</>
+    return <>{children}</>
   }
 
   if (state === 'sent') {
