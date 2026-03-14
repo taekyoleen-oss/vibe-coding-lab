@@ -15,7 +15,7 @@ export async function captureScreenshot(appUrl: string): Promise<string | null> 
       encodeURIComponent(appUrl)
 
     const res = await fetch(captureUrl, {
-      signal: AbortSignal.timeout(25000),
+      signal: AbortSignal.timeout(20000),
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VibeCodeBot/1.0)' },
     })
 

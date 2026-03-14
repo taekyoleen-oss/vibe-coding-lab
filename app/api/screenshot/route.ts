@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { captureScreenshot } from '@/lib/utils/screenshot'
 
+// Vercel 함수 최대 실행 시간 (초) — Hobby: 최대 60s
+export const maxDuration = 60
+
 const LOCAL_PATTERNS = /^https?:\/\/(localhost|127\.|0\.0\.0\.0|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/
 
 // POST /api/screenshot — 로그인 필요
