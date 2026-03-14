@@ -65,7 +65,7 @@ export function OwnerEditForm({ contentType, content }: OwnerEditFormProps) {
         if (data.error === 'LOCAL_URL') {
           alert(data.message)
         } else {
-          alert('스크린샷 자동 캡처에 실패했습니다. 직접 업로드해 주세요.')
+          alert(`스크린샷 자동 캡처에 실패했습니다.\n\n${data.error ?? '알 수 없는 오류'}\n\n직접 업로드해 주세요.`)
         }
         return
       }

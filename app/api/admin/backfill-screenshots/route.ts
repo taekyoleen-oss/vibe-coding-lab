@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
   for (const app of apps) {
     try {
       // 실제 스크린샷 캡처 시도 → 실패 시 OG 이미지 fallback
-      const imageUrl = (await captureScreenshot(app.app_url)) ?? (await fetchOgImage(app.app_url))
+      const captureResult = await captureScreenshot(app.app_url)
+      const imageUrl = captureResult.url ?? (await fetchOgImage(app.app_url))
       if (imageUrl) {
         const { error: updateError } = await service
           .from('vc_apps')

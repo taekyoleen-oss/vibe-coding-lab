@@ -36,10 +36,10 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const screenshotUrl = await captureScreenshot(url)
-  if (!screenshotUrl) {
-    return NextResponse.json({ error: '스크린샷 캡처에 실패했습니다. thum.io 서비스가 해당 URL에 접근하지 못했을 수 있습니다.' }, { status: 500 })
+  const result = await captureScreenshot(url)
+  if (!result.url) {
+    return NextResponse.json({ error: `스크린샷 캡처 실패: ${result.reason}` }, { status: 500 })
   }
 
-  return NextResponse.json({ screenshotUrl })
+  return NextResponse.json({ screenshotUrl: result.url })
 }

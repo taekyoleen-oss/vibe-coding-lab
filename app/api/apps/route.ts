@@ -61,9 +61,9 @@ export async function POST(req: NextRequest) {
 
     // 스크린샷 없으면 실제 화면 캡처 시도 → 실패 시 OG 이미지 fallback
     if (!body.screenshot_url && body.app_url) {
-      const captured = await captureScreenshot(body.app_url)
-      if (captured) {
-        body.screenshot_url = captured
+      const captureResult = await captureScreenshot(body.app_url)
+      if (captureResult.url) {
+        body.screenshot_url = captureResult.url
       } else {
         const ogImage = await fetchOgImage(body.app_url)
         if (ogImage) body.screenshot_url = ogImage
