@@ -14,8 +14,7 @@ export async function captureScreenshot(
     }
 
     const captureUrl =
-      `https://image.thum.io/get/width/1200/crop/630/noanimate/` +
-      encodeURIComponent(appUrl)
+      `https://image.thum.io/get/width/1200/crop/630/noanimate/` + appUrl
 
     const res = await fetch(captureUrl, {
       signal: AbortSignal.timeout(20000),
