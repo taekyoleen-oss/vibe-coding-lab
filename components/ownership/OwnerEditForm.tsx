@@ -156,19 +156,6 @@ export function OwnerEditForm({ contentType, content }: OwnerEditFormProps) {
           }
         }
 
-        // 2. 스크린샷 없으면 자동 캡처
-        if (!finalScreenshotUrl && appForm.app_url) {
-          const capRes = await fetch('/api/screenshot', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: appForm.app_url }),
-          })
-          if (capRes.ok) {
-            const { screenshotUrl } = await capRes.json()
-            finalScreenshotUrl = screenshotUrl
-          }
-        }
-
         body = {
           ...appForm,
           screenshot_url: finalScreenshotUrl || null,
