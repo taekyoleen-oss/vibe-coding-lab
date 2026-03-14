@@ -1,14 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getOwnerSession } from '@/lib/auth/owner-session'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { updateInfoCard } from '@/lib/supabase/queries/info'
 
-// PUT /api/info/[id]/owner — owner session auth
+// PUT /api/info/[id]/owner — 로그인 + 소유자(또는 관리자) 인증
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const supabase = await createSupabaseServerClient()
 
-  const isOwner = getOwnerSession(req, 'info', id)
-  if (!isOwner) {
-    return NextResponse.json({ error: '소유권 인증이 필요합니다' }, { status: 401 })
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 })
+  }
+
+  const { data: card } = await supabase
+    .from('vc_info_cards')
+    .select('author_id')
+    .eq('id', id)
+    .single()
+
+  const isAdmin = user.id === process.env.ADMIN_USER_ID
+  const isOwner = card?.author_id && user.id === card.author_id
+
+  if (!isAdmin && !isOwner) {
+    return NextResponse.json({ error: '수정 권한이 없습니다' }, { status: 403 })
   }
 
   try {

@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createComment } from '@/lib/supabase/queries/comments'
 import { generalLimit, checkRateLimit, getIp } from '@/lib/utils/rate-limit'
 
-// POST /api/comments — public with rate limit, depth validation
+// POST /api/comments — 로그인 필요, depth 검증
 export async function POST(req: NextRequest) {
   try {
     await checkRateLimit(generalLimit, getIp(req))
@@ -12,6 +12,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const supabase = await createSupabaseServerClient()
+
+    // 인증 확인
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 })
+    }
+
     const body = await req.json()
     const { post_id, content, author_nickname } = body
 
@@ -19,7 +27,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '필수 항목을 입력해주세요' }, { status: 400 })
     }
 
-    const supabase = await createSupabaseServerClient()
+    body.author_id = user.id
+
     const comment = await createComment(supabase, body)
     return NextResponse.json({ data: comment }, { status: 201 })
   } catch (err) {

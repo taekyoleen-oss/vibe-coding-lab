@@ -6,7 +6,6 @@ import { Info } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { NicknameInput } from '@/components/common/NicknameInput'
 import { MarkdownEditor } from '@/components/common/MarkdownEditor'
 import type { CreateRequestInput, RequestType } from '@/output/step2_types'
 
@@ -19,17 +18,17 @@ const REQUEST_TYPE_LABELS: Record<RequestType, string> = {
 
 interface RequestSubmitFormProps {
   defaultLinkedAppId?: string
+  defaultNickname?: string
 }
 
-export function RequestSubmitForm({ defaultLinkedAppId }: RequestSubmitFormProps) {
+export function RequestSubmitForm({ defaultLinkedAppId, defaultNickname = '' }: RequestSubmitFormProps) {
   const router = useRouter()
   const [form, setForm] = useState<Partial<CreateRequestInput>>({
     title: '',
     content: '',
     request_type: 'general',
     linked_app_id: defaultLinkedAppId ?? '',
-    author_nickname: '',
-    author_email: '',
+    author_nickname: defaultNickname,
   })
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -38,7 +37,6 @@ export function RequestSubmitForm({ defaultLinkedAppId }: RequestSubmitFormProps
     const errs: Record<string, string> = {}
     if (!form.title?.trim()) errs.title = '제목을 입력해주세요'
     if (!form.content?.trim()) errs.content = '내용을 입력해주세요'
-    if (!form.author_nickname?.trim()) errs.author_nickname = '닉네임을 입력해주세요'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -53,9 +51,8 @@ export function RequestSubmitForm({ defaultLinkedAppId }: RequestSubmitFormProps
         title: form.title!,
         content: form.content!,
         request_type: form.request_type ?? 'general',
-        author_nickname: form.author_nickname!,
+        author_nickname: form.author_nickname || defaultNickname || '익명',
         ...(form.linked_app_id?.trim() ? { linked_app_id: form.linked_app_id } : {}),
-        ...(form.author_email?.trim() ? { author_email: form.author_email } : {}),
       }
 
       const res = await fetch('/api/requests', {
@@ -66,6 +63,10 @@ export function RequestSubmitForm({ defaultLinkedAppId }: RequestSubmitFormProps
 
       if (!res.ok) {
         const err = await res.json()
+        if (err.error === '로그인이 필요합니다') {
+          router.push('/auth/login?next=/requests/new')
+          return
+        }
         throw new Error(err.error ?? '요청 제출 실패')
       }
 
@@ -146,23 +147,12 @@ export function RequestSubmitForm({ defaultLinkedAppId }: RequestSubmitFormProps
         />
       </div>
 
-      {/* 닉네임 */}
-      <NicknameInput
-        value={form.author_nickname ?? ''}
-        onChange={(v) => setForm((p) => ({ ...p, author_nickname: v }))}
-        required
-        error={errors.author_nickname}
-      />
-
-      {/* 이메일 */}
+      {/* 닉네임: 계정에서 자동 사용 */}
       <div className="space-y-1.5">
-        <Label>이메일 (선택)</Label>
-        <Input
-          type="email"
-          value={form.author_email ?? ''}
-          onChange={(e) => setForm((p) => ({ ...p, author_email: e.target.value }))}
-          placeholder="답변을 받을 이메일 (공개되지 않습니다)"
-        />
+        <Label>닉네임</Label>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted/50 border border-border text-sm text-muted-foreground">
+          {defaultNickname || '(계정 닉네임이 자동으로 사용됩니다)'}
+        </div>
       </div>
 
       <button

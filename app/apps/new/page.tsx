@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { AppSubmitForm } from '@/components/apps/AppSubmitForm'
 
 export const metadata: Metadata = {
@@ -6,14 +8,23 @@ export const metadata: Metadata = {
   description: 'AI로 만든 앱을 등록하고 공유하세요.',
 }
 
-export default function NewAppPage() {
+export default async function NewAppPage() {
+  const supabase = await createSupabaseServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/auth/login?next=/apps/new')
+  }
+
+  const nickname = user.user_metadata?.nickname ?? user.email?.split('@')[0] ?? ''
+
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
       <h1 className="text-2xl font-bold text-foreground mb-2">앱 등록하기</h1>
       <p className="text-sm text-muted-foreground mb-8">
         AI 도구로 만든 앱을 등록하고 다른 비개발자들과 경험을 나눠보세요.
       </p>
-      <AppSubmitForm />
+      <AppSubmitForm defaultNickname={nickname} />
     </div>
   )
 }

@@ -1,32 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getOwnerSession } from '@/lib/auth/owner-session'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { updateApp } from '@/lib/supabase/queries/apps'
 
-// PUT /api/apps/[id]/owner — owner session auth
+// PUT /api/apps/[id]/owner — 로그인 + 소유자(또는 관리자) 인증
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const supabase = await createSupabaseServerClient()
 
-  const isOwner = getOwnerSession(req, 'app', id)
-  if (!isOwner) {
-    return NextResponse.json({ error: '소유권 인증이 필요합니다' }, { status: 401 })
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 })
+  }
+
+  // 소유권 확인: author_id 조회
+  const { data: app } = await supabase
+    .from('vc_apps')
+    .select('author_id')
+    .eq('id', id)
+    .single()
+
+  const isAdmin = user.id === process.env.ADMIN_USER_ID
+  const isOwner = app?.author_id && user.id === app.author_id
+
+  if (!isAdmin && !isOwner) {
+    return NextResponse.json({ error: '수정 권한이 없습니다' }, { status: 403 })
   }
 
   try {
     const body = await req.json()
+    const { title, description, level, screenshot_url, app_url, uses_api_key, initial_prompt, markdown_content, vibe_tool, author_nickname, created_at } = body
 
-    // Owner can only update limited fields — not is_hidden or admin-only fields
-    const { title, description, level, screenshot_url, app_url, uses_api_key, initial_prompt, markdown_content, vibe_tool, author_nickname } = body
+    // created_at: YYYY-MM-DD → ISO 8601 변환
+    const normalizedCreatedAt = created_at
+      ? new Date(created_at).toISOString()
+      : undefined
+
     await updateApp(id, {
       title,
       description,
-      level,
+      level: level || null,
       screenshot_url,
       app_url,
       uses_api_key,
       initial_prompt,
       markdown_content,
-      vibe_tool,
+      vibe_tool: vibe_tool || null,
       author_nickname,
+      ...(normalizedCreatedAt ? { created_at: normalizedCreatedAt } : {}),
     })
     return NextResponse.json({ message: '수정되었습니다' })
   } catch (err) {

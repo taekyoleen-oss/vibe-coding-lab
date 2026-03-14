@@ -1,14 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, Upload } from 'lucide-react'
+import { AlertTriangle, Upload, Sparkles, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { NicknameInput } from '@/components/common/NicknameInput'
 import { MarkdownEditor } from '@/components/common/MarkdownEditor'
 import { AiRefineButton } from './AiRefineButton'
 import { AiRefinePreview } from './AiRefinePreview'
@@ -49,7 +48,11 @@ const VIBE_TOOLS: VibeTool[] = [
   '기타',
 ]
 
-export function AppSubmitForm() {
+interface AppSubmitFormProps {
+  defaultNickname?: string
+}
+
+export function AppSubmitForm({ defaultNickname = '' }: AppSubmitFormProps) {
   const router = useRouter()
 
   const [form, setForm] = useState<Partial<CreateAppInput>>({
@@ -59,19 +62,47 @@ export function AppSubmitForm() {
     uses_api_key: false,
     initial_prompt: '',
     markdown_content: APP_MARKDOWN_TEMPLATE,
-    author_nickname: '',
-    author_email: '',
+    author_nickname: defaultNickname,
   })
 
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null)
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
+  const [ogImageUrl, setOgImageUrl] = useState<string | null>(null)
+  const [ogFetching, setOgFetching] = useState(false)
   const [aiResult, setAiResult] = useState<RefineAppResponse | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof CreateAppInput, string>>>({})
+  const ogFetchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function handleField<K extends keyof CreateAppInput>(key: K, value: CreateAppInput[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
     setErrors((prev) => ({ ...prev, [key]: undefined }))
+
+    // 앱 URL 변경 시 OG 이미지 자동 감지 (디바운스 1.5초)
+    if (key === 'app_url' && typeof value === 'string') {
+      if (ogFetchTimeout.current) clearTimeout(ogFetchTimeout.current)
+      setOgImageUrl(null)
+      const url = value.trim()
+      if (url.startsWith('https://')) {
+        ogFetchTimeout.current = setTimeout(() => autoFetchOgImage(url), 1500)
+      }
+    }
+  }
+
+  async function autoFetchOgImage(url: string) {
+    if (screenshotFile) return // 직접 업로드 파일이 있으면 스킵
+    setOgFetching(true)
+    try {
+      const res = await fetch(`/api/og-image?url=${encodeURIComponent(url)}`)
+      if (res.ok) {
+        const { imageUrl } = await res.json()
+        if (imageUrl) setOgImageUrl(imageUrl)
+      }
+    } catch {
+      // 무시
+    } finally {
+      setOgFetching(false)
+    }
   }
 
   function handleScreenshot(e: React.ChangeEvent<HTMLInputElement>) {
@@ -79,6 +110,12 @@ export function AppSubmitForm() {
     if (!file) return
     setScreenshotFile(file)
     setScreenshotPreview(URL.createObjectURL(file))
+    setOgImageUrl(null) // 직접 업로드하면 OG 이미지 미리보기 숨김
+  }
+
+  function clearScreenshot() {
+    setScreenshotFile(null)
+    setScreenshotPreview(null)
   }
 
   function handleAiApply(result: RefineAppResponse) {
@@ -131,7 +168,6 @@ export function AppSubmitForm() {
         ...(form.initial_prompt ? { initial_prompt: form.initial_prompt } : {}),
         ...(form.markdown_content ? { markdown_content: form.markdown_content } : {}),
         ...(screenshot_url ? { screenshot_url } : {}),
-        ...(form.author_email?.trim() ? { author_email: form.author_email } : {}),
       }
 
       const res = await fetch('/api/apps', {
@@ -298,10 +334,33 @@ export function AppSubmitForm() {
       {/* 스크린샷 업로드 */}
       <div className="space-y-1.5">
         <Label>스크린샷</Label>
-        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-muted/30">
-          <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+
+        {/* OG 이미지 자동 감지 결과 */}
+        {(ogFetching || ogImageUrl) && !screenshotPreview && (
+          <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              {ogFetching ? '앱 URL에서 이미지를 자동으로 가져오는 중...' : '앱 URL에서 이미지를 자동으로 가져왔어요'}
+            </div>
+            {ogImageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={ogImageUrl}
+                alt="자동 감지된 앱 이미지"
+                className="max-h-40 rounded-md object-cover border border-border w-full"
+              />
+            )}
+          </div>
+        )}
+
+        {/* 직접 업로드 */}
+        <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors bg-muted/30">
+          <Upload className="h-5 w-5 text-muted-foreground mb-1" />
           <span className="text-sm text-muted-foreground">
-            {screenshotFile ? screenshotFile.name : '이미지를 클릭하거나 드래그하여 업로드'}
+            {screenshotFile ? screenshotFile.name : '직접 업로드 (선택)'}
+          </span>
+          <span className="text-xs text-muted-foreground/60 mt-0.5">
+            클릭하거나 이미지를 드래그하세요
           </span>
           <input
             type="file"
@@ -311,35 +370,30 @@ export function AppSubmitForm() {
           />
         </label>
         {screenshotPreview && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={screenshotPreview}
-            alt="스크린샷 미리보기"
-            className="mt-2 max-h-48 rounded-md object-contain border border-border"
-          />
+          <div className="relative mt-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={screenshotPreview}
+              alt="스크린샷 미리보기"
+              className="max-h-48 rounded-md object-contain border border-border w-full"
+            />
+            <button
+              type="button"
+              onClick={clearScreenshot}
+              className="absolute top-1.5 right-1.5 rounded-full bg-black/60 p-0.5 text-white hover:bg-black/80 transition-colors"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
         )}
       </div>
 
-      {/* 닉네임 */}
-      <NicknameInput
-        value={form.author_nickname ?? ''}
-        onChange={(v) => handleField('author_nickname', v)}
-        required
-        error={errors.author_nickname}
-      />
-
-      {/* 이메일 (선택) */}
+      {/* 닉네임: 로그인 계정에서 자동 사용 */}
       <div className="space-y-1.5">
-        <Label>이메일 (선택 — 수정용)</Label>
-        <Input
-          type="email"
-          value={form.author_email ?? ''}
-          onChange={(e) => handleField('author_email', e.target.value)}
-          placeholder="나중에 수정하려면 이메일을 입력하세요"
-        />
-        <p className="text-xs text-muted-foreground">
-          이메일을 입력하면 나중에 Magic Link로 수정할 수 있습니다. 공개되지 않습니다.
-        </p>
+        <Label>닉네임</Label>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted/50 border border-border text-sm text-muted-foreground">
+          {form.author_nickname || '(계정 닉네임이 자동으로 사용됩니다)'}
+        </div>
       </div>
 
       <button

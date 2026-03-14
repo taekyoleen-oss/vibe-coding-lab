@@ -5,6 +5,7 @@ import './globals.css'
 import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner'
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { MobileNavOverlay } from '@/components/layout/MobileNavOverlay'
+import { MobileUserButton } from '@/components/auth/MobileUserButton'
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -58,9 +59,10 @@ export default function RootLayout({
               {/* 모바일 헤더 */}
               <header className="md:hidden flex items-center h-14 px-4 border-b border-border bg-background sticky top-0 z-40">
                 <MobileNavOverlay />
-                <span className="ml-3 font-semibold text-sm text-foreground">
+                <span className="ml-3 font-semibold text-sm text-foreground flex-1">
                   비개발자의 개발실
                 </span>
+                <MobileUserButton />
               </header>
               <main className="flex-1">
                 {children}

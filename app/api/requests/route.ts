@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/requests — public with rate limit
+// POST /api/requests — 로그인 필요
 export async function POST(req: NextRequest) {
   try {
     await checkRateLimit(generalLimit, getIp(req))
@@ -34,6 +34,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const supabase = await createSupabaseServerClient()
+
+    // 인증 확인
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 })
+    }
+
     const body = await req.json()
     const { title, content, author_nickname } = body
 
@@ -41,7 +49,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '필수 항목을 입력해주세요' }, { status: 400 })
     }
 
-    const supabase = await createSupabaseServerClient()
+    // 작성자 ID 자동 주입
+    body.author_id = user.id
+
     const result = await createRequest(supabase, body)
     return NextResponse.json({ data: result }, { status: 201 })
   } catch (err) {

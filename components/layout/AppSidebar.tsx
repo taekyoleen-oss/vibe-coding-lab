@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { Home, LayoutGrid, MessageSquare, BookOpen, Link2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DarkModeToggle } from './DarkModeToggle'
+import { UserMenu } from '@/components/auth/UserMenu'
 
 const NAV_ITEMS = [
   { href: '/', label: '홈', icon: <Home className="h-4 w-4" /> },
@@ -52,9 +53,10 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      {/* 하단: 다크모드 토글 */}
-      <div className="px-3 pt-4 border-t border-border mt-2">
-        <div className="flex items-center justify-between">
+      {/* 하단: 유저 메뉴 + 다크모드 */}
+      <div className="px-3 pt-4 border-t border-border mt-2 space-y-2">
+        <UserMenu />
+        <div className="flex items-center justify-between px-3">
           <span className="text-xs text-muted-foreground">테마</span>
           <DarkModeToggle />
         </div>

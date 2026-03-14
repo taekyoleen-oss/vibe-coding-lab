@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { DarkModeToggle } from './DarkModeToggle'
+import { UserMenu } from '@/components/auth/UserMenu'
 
 const NAV_ITEMS = [
   { href: '/', label: '홈', icon: <Home className="h-4 w-4" /> },
@@ -63,8 +64,9 @@ export function MobileNavOverlay() {
             </Link>
           ))}
         </nav>
-        <div className="absolute bottom-0 left-0 right-0 px-3 py-4 border-t border-border">
-          <div className="flex items-center justify-between">
+        <div className="absolute bottom-0 left-0 right-0 px-3 py-4 border-t border-border space-y-2">
+          <UserMenu />
+          <div className="flex items-center justify-between px-3">
             <span className="text-xs text-muted-foreground">테마</span>
             <DarkModeToggle />
           </div>

@@ -185,7 +185,7 @@ export default async function AppDetailPage({ params }: PageProps) {
       {/* 수정 섹션 */}
       <div className="mt-12 pt-8 border-t border-border">
         <h2 className="text-base font-semibold text-foreground mb-4">앱 수정</h2>
-        <EditOwnerGate contentType="app" contentId={app.id}>
+        <EditOwnerGate contentType="app" contentId={app.id} authorId={app.author_id ?? null}>
           <OwnerEditForm contentType="app" content={app} />
         </EditOwnerGate>
       </div>

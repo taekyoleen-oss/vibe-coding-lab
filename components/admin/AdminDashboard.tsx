@@ -2,10 +2,55 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { LayoutGrid, MessageSquare, BookOpen, Link2, Settings, LogOut } from 'lucide-react'
+import { LayoutGrid, MessageSquare, BookOpen, Link2, Settings, LogOut, ImageIcon } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AdminSettingsTab } from './AdminSettingsTab'
 import type { SafeVcApp, SafeVcRequestPost, SafeVcInfoCard, VcLink, VcAdminSettings } from '@/output/step2_types'
+
+// ─── 기존 앱 이미지 일괄 업데이트 ─────────────────────────────────────────────
+
+function BackfillScreenshotsButton() {
+  const router = useRouter()
+  const [running, setRunning] = useState(false)
+  const [result, setResult] = useState<string | null>(null)
+
+  async function handleBackfill() {
+    setRunning(true)
+    setResult(null)
+    try {
+      const res = await fetch('/api/admin/backfill-screenshots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ limit: 50 }),
+      })
+      const data = await res.json()
+      setResult(data.message ?? '완료')
+      router.refresh()
+    } catch {
+      setResult('오류가 발생했습니다.')
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  return (
+    <div className="mb-4 p-3 rounded-lg border border-border bg-muted/30 flex items-center justify-between gap-4">
+      <div>
+        <p className="text-sm font-medium text-foreground">기존 앱 이미지 자동 채우기</p>
+        <p className="text-xs text-muted-foreground">스크린샷 없는 앱에서 OG 이미지를 자동으로 가져옵니다 (50개씩)</p>
+        {result && <p className="text-xs text-primary mt-1">{result}</p>}
+      </div>
+      <button
+        onClick={handleBackfill}
+        disabled={running}
+        className="shrink-0 inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+      >
+        <ImageIcon className="h-3.5 w-3.5" />
+        {running ? '처리 중...' : '실행'}
+      </button>
+    </div>
+  )
+}
 
 // ─── 관리자 앱 탭 ──────────────────────────────────────────────────────────────
 
@@ -317,6 +362,7 @@ export function AdminDashboard({
         </TabsList>
 
         <TabsContent value="apps" className="mt-4">
+          <BackfillScreenshotsButton />
           <AppsTab apps={apps} />
         </TabsContent>
         <TabsContent value="requests" className="mt-4">
