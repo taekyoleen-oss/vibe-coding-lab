@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { createBrowserClient } from '@supabase/ssr'
 import type { User } from '@supabase/supabase-js'
@@ -9,6 +9,7 @@ import { LogIn, LogOut } from 'lucide-react'
 
 export function MobileUserButton() {
   const router = useRouter()
+  const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const [open, setOpen] = useState(false)
 
@@ -35,7 +36,7 @@ export function MobileUserButton() {
   if (!user) {
     return (
       <Link
-        href="/auth/login"
+        href={`/auth/login?next=${encodeURIComponent(pathname)}`}
         className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1.5 rounded-md hover:bg-accent/50 transition-colors"
       >
         <LogIn className="h-4 w-4" />

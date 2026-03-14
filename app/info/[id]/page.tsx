@@ -42,7 +42,6 @@ export default async function InfoDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
-      {/* 뒤로가기 */}
       <Link
         href="/info"
         className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 inline-flex items-center gap-1"

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { createBrowserClient } from '@supabase/ssr'
 import type { User } from '@supabase/supabase-js'
@@ -9,6 +9,7 @@ import { LogIn, LogOut, User as UserIcon } from 'lucide-react'
 
 export function UserMenu() {
   const router = useRouter()
+  const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const [open, setOpen] = useState(false)
 
@@ -34,9 +35,10 @@ export function UserMenu() {
   const nickname = user?.user_metadata?.nickname ?? user?.email?.split('@')[0] ?? '사용자'
 
   if (!user) {
+    const loginHref = `/auth/login?next=${encodeURIComponent(pathname)}`
     return (
       <Link
-        href="/auth/login"
+        href={loginHref}
         className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors w-full"
       >
         <LogIn className="h-4 w-4" />

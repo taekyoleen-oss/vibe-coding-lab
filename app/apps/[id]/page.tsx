@@ -61,6 +61,14 @@ export default async function AppDetailPage({ params }: PageProps) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
+      {/* 뒤로가기 */}
+      <Link
+        href="/apps"
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 inline-flex items-center gap-1"
+      >
+        ← 목록으로
+      </Link>
+
       {/* 헤더 */}
       <div className="space-y-4 mb-8">
         {app.screenshot_url && (
