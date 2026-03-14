@@ -8,21 +8,19 @@ import { AppRequestList } from '@/components/apps/AppRequestList'
 import { MarkdownViewer } from '@/components/common/MarkdownViewer'
 import { EditOwnerGate } from '@/components/ownership/EditOwnerGate'
 import { OwnerEditForm } from '@/components/ownership/OwnerEditForm'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getApp } from '@/lib/supabase/queries/apps'
+import { getRequests } from '@/lib/supabase/queries/requests'
 import type { SafeVcApp, SafeVcRequestPost } from '@/output/step2_types'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-async function getApp(id: string): Promise<SafeVcApp | null> {
+async function fetchApp(id: string): Promise<SafeVcApp | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/apps/${id}`, {
-      next: { revalidate: 60 },
-    })
-    if (!res.ok) return null
-    const json = await res.json()
-    return json.data ?? null
+    const supabase = await createSupabaseServerClient()
+    return await getApp(supabase, id)
   } catch {
     return null
   }
@@ -30,13 +28,9 @@ async function getApp(id: string): Promise<SafeVcApp | null> {
 
 async function getAppRequests(appId: string): Promise<SafeVcRequestPost[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/requests?linked_app_id=${appId}`, {
-      next: { revalidate: 30 },
-    })
-    if (!res.ok) return []
-    const json = await res.json()
-    return json.data ?? []
+    const supabase = await createSupabaseServerClient()
+    const result = await getRequests(supabase, { linked_app_id: appId, page: 1 })
+    return result.data
   } catch {
     return []
   }
@@ -44,7 +38,7 @@ async function getAppRequests(appId: string): Promise<SafeVcRequestPost[]> {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
-  const app = await getApp(id)
+  const app = await fetchApp(id)
   if (!app) return { title: '앱을 찾을 수 없습니다' }
 
   return {
@@ -61,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function AppDetailPage({ params }: PageProps) {
   const { id } = await params
-  const [app, requests] = await Promise.all([getApp(id), getAppRequests(id)])
+  const [app, requests] = await Promise.all([fetchApp(id), getAppRequests(id)])
 
   if (!app) notFound()
 

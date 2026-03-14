@@ -1,17 +1,15 @@
 import Link from 'next/link'
 import { HeroSection } from '@/components/home/HeroSection'
 import { AppCard } from '@/components/apps/AppCard'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getApps } from '@/lib/supabase/queries/apps'
 import type { SafeVcApp } from '@/output/step2_types'
 
 async function getLatestApps(): Promise<SafeVcApp[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/apps?page=1`, {
-      next: { revalidate: 60 },
-    })
-    if (!res.ok) return []
-    const json = await res.json()
-    return (json.data ?? []).slice(0, 4)
+    const supabase = await createSupabaseServerClient()
+    const result = await getApps(supabase, { page: 1 })
+    return result.data.slice(0, 4)
   } catch {
     return []
   }

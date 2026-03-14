@@ -2,7 +2,9 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { LinkCard } from '@/components/links/LinkCard'
-import type { VcLink, LinkCategory, PaginatedResponse } from '@/output/step2_types'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getLinks } from '@/lib/supabase/queries/links'
+import type { VcLink, LinkCategory } from '@/output/step2_types'
 
 export const metadata: Metadata = {
   title: '참고 링크 — 비개발자의 개발실',
@@ -22,25 +24,21 @@ interface PageProps {
   searchParams: Promise<{ category?: string }>
 }
 
-async function getLinks(category?: string): Promise<PaginatedResponse<VcLink>> {
+async function fetchLinks(category?: string): Promise<VcLink[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-    const qs = new URLSearchParams()
-    if (category && category !== 'all') qs.set('category', category)
-    const res = await fetch(`${baseUrl}/api/links?${qs.toString()}`, {
-      next: { revalidate: 60 },
-    })
-    if (!res.ok) return { data: [], total: 0, page: 1, pageSize: 100 }
-    return res.json()
+    const supabase = await createSupabaseServerClient()
+    const all = await getLinks(supabase)
+    if (!category || category === 'all') return all
+    return all.filter((l) => l.category === category)
   } catch {
-    return { data: [], total: 0, page: 1, pageSize: 100 }
+    return []
   }
 }
 
 export default async function LinksPage({ searchParams }: PageProps) {
   const sp = await searchParams
   const category = sp.category ?? 'all'
-  const result = await getLinks(category)
+  const links = await fetchLinks(category)
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
@@ -77,10 +75,10 @@ export default async function LinksPage({ searchParams }: PageProps) {
         ))}
       </div>
 
-      <p className="text-sm text-muted-foreground mb-4">총 {result.total}개의 링크</p>
+      <p className="text-sm text-muted-foreground mb-4">총 {links.length}개의 링크</p>
 
       <Suspense fallback={<div className="text-sm text-muted-foreground">로딩 중...</div>}>
-        {result.data.length === 0 ? (
+        {links.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground">이 카테고리에 등록된 링크가 없습니다.</p>
             <Link
@@ -92,7 +90,7 @@ export default async function LinksPage({ searchParams }: PageProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {result.data.map((link) => (
+            {links.map((link) => (
               <LinkCard key={link.id} link={link} />
             ))}
           </div>

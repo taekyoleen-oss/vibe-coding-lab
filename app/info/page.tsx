@@ -3,7 +3,9 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { InfoCard } from '@/components/info/InfoCard'
 import { Pagination } from '@/components/common/Pagination'
-import type { SafeVcInfoCard, PaginatedResponse } from '@/output/step2_types'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getInfoCards } from '@/lib/supabase/queries/info'
+import type { SafeVcInfoCard } from '@/output/step2_types'
 
 export const metadata: Metadata = {
   title: '정보 공유 — 비개발자의 개발실',
@@ -14,23 +16,17 @@ interface PageProps {
   searchParams: Promise<{ page?: string }>
 }
 
-async function getInfoCards(page: number): Promise<PaginatedResponse<SafeVcInfoCard>> {
+async function fetchInfoCards(): Promise<SafeVcInfoCard[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/info?page=${page}`, {
-      next: { revalidate: 30 },
-    })
-    if (!res.ok) return { data: [], total: 0, page: 1, pageSize: 12 }
-    return res.json()
+    const supabase = await createSupabaseServerClient()
+    return await getInfoCards(supabase)
   } catch {
-    return { data: [], total: 0, page: 1, pageSize: 12 }
+    return []
   }
 }
 
 export default async function InfoPage({ searchParams }: PageProps) {
-  const sp = await searchParams
-  const page = Number(sp.page) || 1
-  const result = await getInfoCards(page)
+  const cards = await fetchInfoCards()
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
@@ -50,10 +46,10 @@ export default async function InfoPage({ searchParams }: PageProps) {
         </Link>
       </div>
 
-      <p className="text-sm text-muted-foreground mb-4">총 {result.total}개의 정보</p>
+      <p className="text-sm text-muted-foreground mb-4">총 {cards.length}개의 정보</p>
 
       <Suspense fallback={<div className="text-sm text-muted-foreground">로딩 중...</div>}>
-        {result.data.length === 0 ? (
+        {cards.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground">아직 등록된 정보가 없습니다.</p>
             <Link
@@ -65,18 +61,12 @@ export default async function InfoPage({ searchParams }: PageProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {result.data.map((card) => (
+            {cards.map((card) => (
               <InfoCard key={card.id} card={card} />
             ))}
           </div>
         )}
       </Suspense>
-
-      <Pagination
-        currentPage={page}
-        totalItems={result.total}
-        pageSize={result.pageSize}
-      />
     </div>
   )
 }

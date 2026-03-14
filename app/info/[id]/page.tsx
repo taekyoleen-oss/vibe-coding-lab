@@ -5,19 +5,18 @@ import { Images, FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { SlideViewer } from '@/components/info/SlideViewer'
 import { MarkdownViewer } from '@/components/common/MarkdownViewer'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getInfoCard } from '@/lib/supabase/queries/info'
 import type { VcInfoCardWithSlides } from '@/output/step2_types'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-async function getInfoCard(id: string): Promise<VcInfoCardWithSlides | null> {
+async function fetchInfoCard(id: string): Promise<VcInfoCardWithSlides | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-    const res = await fetch(`${baseUrl}/api/info/${id}`, { next: { revalidate: 60 } })
-    if (!res.ok) return null
-    const json = await res.json()
-    return json.data ?? null
+    const supabase = await createSupabaseServerClient()
+    return await getInfoCard(supabase, id)
   } catch {
     return null
   }
@@ -25,7 +24,7 @@ async function getInfoCard(id: string): Promise<VcInfoCardWithSlides | null> {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
-  const card = await getInfoCard(id)
+  const card = await fetchInfoCard(id)
   if (!card) return { title: '정보를 찾을 수 없습니다' }
 
   return {
@@ -36,7 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function InfoDetailPage({ params }: PageProps) {
   const { id } = await params
-  const card = await getInfoCard(id)
+  const card = await fetchInfoCard(id)
   if (!card) notFound()
 
   const isSlides = card.content_type === 'slides'

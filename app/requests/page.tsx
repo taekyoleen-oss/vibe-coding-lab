@@ -3,6 +3,8 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { RequestPostCard } from '@/components/requests/RequestPostCard'
 import { Pagination } from '@/components/common/Pagination'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getRequests } from '@/lib/supabase/queries/requests'
 import type { RequestListResponse, RequestSearchParams } from '@/output/step2_types'
 
 export const metadata: Metadata = {
@@ -14,19 +16,10 @@ interface PageProps {
   searchParams: Promise<RequestSearchParams & { page?: string }>
 }
 
-async function getRequests(params: RequestSearchParams): Promise<RequestListResponse> {
+async function fetchRequests(params: RequestSearchParams): Promise<RequestListResponse> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-    const qs = new URLSearchParams()
-    if (params.q) qs.set('q', params.q)
-    if (params.status) qs.set('status', params.status)
-    if (params.request_type) qs.set('request_type', params.request_type)
-    if (params.page) qs.set('page', String(params.page))
-    const res = await fetch(`${baseUrl}/api/requests?${qs.toString()}`, {
-      next: { revalidate: 30 },
-    })
-    if (!res.ok) return { data: [], total: 0, page: 1, pageSize: 12 }
-    return res.json()
+    const supabase = await createSupabaseServerClient()
+    return await getRequests(supabase, params)
   } catch {
     return { data: [], total: 0, page: 1, pageSize: 12 }
   }
@@ -35,7 +28,7 @@ async function getRequests(params: RequestSearchParams): Promise<RequestListResp
 export default async function RequestsPage({ searchParams }: PageProps) {
   const sp = await searchParams
   const page = Number(sp.page) || 1
-  const result = await getRequests({ ...sp, page })
+  const result = await fetchRequests({ ...sp, page })
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">

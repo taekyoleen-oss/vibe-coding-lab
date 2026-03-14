@@ -3,26 +3,18 @@ import Link from 'next/link'
 import { AppGrid } from '@/components/apps/AppGrid'
 import { AppSearchBar } from '@/components/apps/AppSearchBar'
 import { AppFilterChips } from '@/components/apps/AppFilterChips'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getApps } from '@/lib/supabase/queries/apps'
 import type { AppSearchParams, AppListResponse } from '@/output/step2_types'
 
 interface PageProps {
   searchParams: Promise<AppSearchParams & { page?: string }>
 }
 
-async function getApps(params: AppSearchParams): Promise<AppListResponse> {
+async function fetchApps(params: AppSearchParams): Promise<AppListResponse> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-    const qs = new URLSearchParams()
-    if (params.q) qs.set('q', params.q)
-    if (params.level) qs.set('level', params.level)
-    if (params.uses_api_key !== undefined) qs.set('uses_api_key', String(params.uses_api_key))
-    if (params.tool && params.tool !== '전체') qs.set('tool', params.tool)
-    if (params.page) qs.set('page', String(params.page))
-    const res = await fetch(`${baseUrl}/api/apps?${qs.toString()}`, {
-      next: { revalidate: 30 },
-    })
-    if (!res.ok) return { data: [], total: 0, page: 1, pageSize: 12 }
-    return res.json()
+    const supabase = await createSupabaseServerClient()
+    return await getApps(supabase, params)
   } catch {
     return { data: [], total: 0, page: 1, pageSize: 12 }
   }
@@ -31,7 +23,7 @@ async function getApps(params: AppSearchParams): Promise<AppListResponse> {
 export default async function AppsPage({ searchParams }: PageProps) {
   const sp = await searchParams
   const page = Number(sp.page) || 1
-  const result = await getApps({ ...sp, page })
+  const result = await fetchApps({ ...sp, page })
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
