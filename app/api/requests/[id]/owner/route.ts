@@ -18,7 +18,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     .eq('id', id)
     .single()
 
-  const isAdmin = user.id === process.env.ADMIN_USER_ID
+  const isAdmin = user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID
   const isOwner = post?.author_id && user.id === post.author_id
 
   if (!isAdmin && !isOwner) {

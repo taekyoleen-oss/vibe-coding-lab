@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify the logged-in user is the admin
-    if (data.user.id !== process.env.ADMIN_USER_ID) {
+    if (data.user.id !== process.env.NEXT_PUBLIC_ADMIN_USER_ID) {
       await supabase.auth.signOut()
       return NextResponse.json({ error: '권한이 없습니다' }, { status: 403 })
     }

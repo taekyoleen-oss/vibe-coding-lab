@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user || user.id !== process.env.ADMIN_USER_ID) {
+  if (!user || user.id !== process.env.NEXT_PUBLIC_ADMIN_USER_ID) {
     return NextResponse.json({ error: '관리자 권한이 필요합니다' }, { status: 403 })
   }
 
