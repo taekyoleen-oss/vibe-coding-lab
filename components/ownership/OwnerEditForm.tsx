@@ -513,7 +513,7 @@ export function OwnerEditForm({ contentType, content }: OwnerEditFormProps) {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors"
             >
               <Trash2 className="h-4 w-4" />
-              앱 삭제
+              게시 삭제
             </button>
           ) : (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-3">
