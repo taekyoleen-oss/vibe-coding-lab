@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
-import { updateApp } from '@/lib/supabase/queries/apps'
+import { updateApp, softDeleteApp } from '@/lib/supabase/queries/apps'
 
 // PUT /api/apps/[id]/owner — 로그인 + 소유자(또는 관리자) 인증
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -52,5 +52,37 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   } catch (err) {
     console.error('[PUT /api/apps/[id]/owner]', err)
     return NextResponse.json({ error: '앱 수정에 실패했습니다' }, { status: 500 })
+  }
+}
+
+// DELETE /api/apps/[id]/owner — 로그인 + 소유자(또는 관리자) 인증
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const supabase = await createSupabaseServerClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ error: '로그인이 필요합니다' }, { status: 401 })
+  }
+
+  const { data: app } = await supabase
+    .from('vc_apps')
+    .select('author_id')
+    .eq('id', id)
+    .single()
+
+  const isAdmin = user.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID
+  const isOwner = app?.author_id && user.id === app.author_id
+
+  if (!isAdmin && !isOwner) {
+    return NextResponse.json({ error: '삭제 권한이 없습니다' }, { status: 403 })
+  }
+
+  try {
+    await softDeleteApp(id)
+    return NextResponse.json({ message: '삭제되었습니다' })
+  } catch (err) {
+    console.error('[DELETE /api/apps/[id]/owner]', err)
+    return NextResponse.json({ error: '앱 삭제에 실패했습니다' }, { status: 500 })
   }
 }

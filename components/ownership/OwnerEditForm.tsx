@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, CheckCircle, Camera, Upload, X } from 'lucide-react'
+import { Save, CheckCircle, Camera, Upload, X, Trash2, AlertTriangle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -38,6 +38,8 @@ export function OwnerEditForm({ contentType, content }: OwnerEditFormProps) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null)
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
   const [capturing, setCapturing] = useState(false)
@@ -194,6 +196,30 @@ export function OwnerEditForm({ contentType, content }: OwnerEditFormProps) {
       alert(err instanceof Error ? err.message : '수정에 실패했습니다.')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const endpoint =
+        contentType === 'app'
+          ? `/api/apps/${content.id}/owner`
+          : null
+
+      if (!endpoint) return
+
+      const res = await fetch(endpoint, { method: 'DELETE' })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? '삭제 실패')
+      }
+      router.push('/apps')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '삭제에 실패했습니다.')
+      setConfirmDelete(false)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -476,6 +502,48 @@ export function OwnerEditForm({ contentType, content }: OwnerEditFormProps) {
           </>
         )}
       </button>
+
+      {/* 삭제 섹션 — app 타입만 */}
+      {contentType === 'app' && (
+        <div className="pt-4 border-t border-border">
+          {!confirmDelete ? (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-destructive/40 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors"
+            >
+              <Trash2 className="h-4 w-4" />
+              앱 삭제
+            </button>
+          ) : (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+              <div className="flex items-start gap-2 text-sm text-destructive">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>앱을 삭제하면 목록에서 숨겨집니다. 정말 삭제하시겠습니까?</span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-colors disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {deleting ? '삭제 중...' : '삭제 확인'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors disabled:opacity-50"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </form>
   )
 }
