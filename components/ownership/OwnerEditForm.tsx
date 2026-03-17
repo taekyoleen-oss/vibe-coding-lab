@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, CheckCircle, Camera, Upload, X, Trash2, AlertTriangle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -45,14 +45,6 @@ export function OwnerEditForm({ contentType, content }: OwnerEditFormProps) {
   const [capturing, setCapturing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  async function handleScreenshotFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setScreenshotFile(file)
-    setScreenshotPreview(URL.createObjectURL(file))
-    setAppForm((p) => p && { ...p, screenshot_url: '' }) // 파일 우선
-  }
-
   async function handleAutoCapture() {
     if (!appForm?.app_url) return
     setCapturing(true)
@@ -87,6 +79,34 @@ export function OwnerEditForm({ contentType, content }: OwnerEditFormProps) {
     setAppForm((p) => p && { ...p, screenshot_url: '' })
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
+
+  const applyImageFile = useCallback((file: File) => {
+    setScreenshotFile(file)
+    setScreenshotPreview(URL.createObjectURL(file))
+    setAppForm((p) => p && { ...p, screenshot_url: '' })
+  }, [])
+
+  function handleScreenshotFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    applyImageFile(file)
+  }
+
+  useEffect(() => {
+    function handleGlobalPaste(e: ClipboardEvent) {
+      const items = e.clipboardData?.items
+      if (!items) return
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile()
+          if (file) applyImageFile(file)
+          break
+        }
+      }
+    }
+    window.addEventListener('paste', handleGlobalPaste)
+    return () => window.removeEventListener('paste', handleGlobalPaste)
+  }, [applyImageFile])
 
   // App form
   const [appForm, setAppForm] = useState(() => {
@@ -340,7 +360,7 @@ export function OwnerEditForm({ contentType, content }: OwnerEditFormProps) {
               {/* 파일 직접 업로드 */}
               <label className="flex-1 flex items-center justify-center gap-1.5 h-9 px-3 rounded-md border border-border text-sm text-muted-foreground hover:border-primary hover:text-foreground transition-colors cursor-pointer bg-background">
                 <Upload className="h-3.5 w-3.5" />
-                직접 업로드
+                직접 업로드 / <kbd className="px-1 py-0.5 rounded bg-muted border border-border font-mono text-[10px]">Ctrl+V</kbd>
                 <input
                   ref={fileInputRef}
                   type="file"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AlertTriangle, Upload, Sparkles, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -105,18 +105,38 @@ export function AppSubmitForm({ defaultNickname = '' }: AppSubmitFormProps) {
     }
   }
 
+  const applyImageFile = useCallback((file: File) => {
+    setScreenshotFile(file)
+    setScreenshotPreview(URL.createObjectURL(file))
+    setOgImageUrl(null)
+  }, [])
+
   function handleScreenshot(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setScreenshotFile(file)
-    setScreenshotPreview(URL.createObjectURL(file))
-    setOgImageUrl(null) // 직접 업로드하면 OG 이미지 미리보기 숨김
+    applyImageFile(file)
   }
 
   function clearScreenshot() {
     setScreenshotFile(null)
     setScreenshotPreview(null)
   }
+
+  useEffect(() => {
+    function handleGlobalPaste(e: ClipboardEvent) {
+      const items = e.clipboardData?.items
+      if (!items) return
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile()
+          if (file) applyImageFile(file)
+          break
+        }
+      }
+    }
+    window.addEventListener('paste', handleGlobalPaste)
+    return () => window.removeEventListener('paste', handleGlobalPaste)
+  }, [applyImageFile])
 
   function handleAiApply(result: RefineAppResponse) {
     setForm((prev) => ({
@@ -360,7 +380,7 @@ export function AppSubmitForm({ defaultNickname = '' }: AppSubmitFormProps) {
             {screenshotFile ? screenshotFile.name : '직접 업로드 (선택)'}
           </span>
           <span className="text-xs text-muted-foreground/60 mt-0.5">
-            클릭하거나 이미지를 드래그하세요
+            클릭하거나 드래그, 또는 <kbd className="px-1 py-0.5 rounded bg-muted border border-border font-mono text-[10px]">Ctrl+V</kbd> 로 붙여넣기
           </span>
           <input
             type="file"
